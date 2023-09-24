@@ -1,0 +1,16 @@
+[package]
+name = "redir"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+actix-web = "4.4.0"
+thiserror = "1.0.48"
+diesel = { version = "2.1.0", features = ["sqlite", "r2d2"] }
+dotenvy = "0.15"
+md5 = "0.7.0"
+base62 = "2.0.2"
+serde = { version = "1.0.188", features = ["derive"] }
+env_logger = "0.10.0"
