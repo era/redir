@@ -14,12 +14,12 @@ async fn redirect(db: web::Data<link::Storage>, path: web::Path<String>) -> Resu
 
     let url = web::block(move || {
         let db = db.into_inner();
-        db.get(path.as_ref())
+        db.get_by_id(path.as_ref())
     })
     .await?;
 
     match url {
-        Ok(url) => Ok(web::Redirect::to(url)),
+        Ok(url) => Ok(web::Redirect::to(url.url)),
         Err(e) => Err(e.into()), 
     }
 

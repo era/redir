@@ -4,7 +4,7 @@ type DbError = Box<dyn std::error::Error + Send + Sync>;
 
 use crate::models;
 
-pub fn find_url_by_id(
+pub fn find_link_by_id(
     conn: &mut SqliteConnection,
     url_id: &str,
 ) -> Result<Option<models::Links>, DbError> {
@@ -34,19 +34,29 @@ pub fn find_link_by_url(
 
 pub fn insert_new_url(
     conn: &mut SqliteConnection,
-    user_url: &str,
+    user_url: String,
+    url_id: Option<String>,
 ) -> Result<models::Links, DbError> {
     use crate::schema::links::dsl::*;
 
-    if let Some(existing_url) = find_link_by_url(conn, user_url)? {
+    if let Some(existing_url) = find_link_by_url(conn, &user_url)? {
         return Ok(existing_url);
     }
 
-    let encoded_id = base62::encode(bytes_to_u128(md5::compute(user_url).as_slice()).unwrap());
+    let encoded_id = match url_id {
+        Some(encoded_id) => {
+            if let Some(existing_url) = find_link_by_id(conn, &encoded_id)? {
+                return Ok(existing_url);
+            }
+            encoded_id
+        }
+        None => base62::encode(bytes_to_u128(md5::compute(&user_url).as_slice()).unwrap()).to_string()
+    };
+
 
     let new_url = models::Links {
-        id: encoded_id.to_string(),
-        url: user_url.to_owned(),
+        id: encoded_id,
+        url: user_url,
         count: 0,
     };
 

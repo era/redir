@@ -1,6 +1,7 @@
 use thiserror::Error;
 
 use crate::actions;
+use crate::models;
 use diesel::{prelude::*, r2d2};
 use actix_web::{
     error, get,
@@ -54,32 +55,32 @@ impl Storage {
         Self { pool }
     }
 
-    pub fn get(&self, id: &str) -> Result<String> {
+    pub fn get_by_id(&self, id: &str) -> Result<models::Links> {
         let mut conn = self.pool.get().unwrap(); //TODO
-        let url = actions::find_url_by_id(&mut conn, id)
+        let url = actions::find_link_by_id(&mut conn, id)
             .map_err(|e| StorageError::DatabaseError(e.to_string()))?;
         if let Some(url) = url {
-            Ok(url.url)
+            Ok(url)
         } else {
             Err(StorageError::NotFound)
         }
     }
 
-    pub fn put(&self, url: &str) -> Result<String> {
+    pub fn get_by_url(&self, url: &str) -> Result<models::Links> {
         let mut conn = self.pool.get().unwrap(); //TODO
-        let url = actions::insert_new_url(&mut conn, url)
-            .map_err(|e| StorageError::DatabaseError(e.to_string()))?;
-        Ok(url.id)
-    }
-
-    pub fn stats(&self, id: &str) -> Result<i32> {
-        let mut conn = self.pool.get().unwrap(); //TODO
-        let url = actions::find_url_by_id(&mut conn, id)
+        let url = actions::find_link_by_url(&mut conn, url)
             .map_err(|e| StorageError::DatabaseError(e.to_string()))?;
         if let Some(url) = url {
-            Ok(url.count)
+            Ok(url)
         } else {
             Err(StorageError::NotFound)
         }
+    }
+
+    pub fn put(&self, url: String, id: Option<String>) -> Result<models::Links> {
+        let mut conn = self.pool.get().unwrap(); //TODO
+        let url = actions::insert_new_url(&mut conn, url, id)
+            .map_err(|e| StorageError::DatabaseError(e.to_string()))?;
+        Ok(url)
     }
 }
